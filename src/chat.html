@@ -19,7 +19,6 @@
             overflow: hidden;
         }
 
-        /* PANEL IZQUIERDO */
         .panel-izquierdo {
             width: 380px;
             background-color: #111b21;
@@ -110,6 +109,7 @@
 
         .chat-info {
             flex: 1;
+            overflow: hidden;
         }
 
         .chat-nombre {
@@ -131,7 +131,6 @@
             font-size: 0.75rem;
         }
 
-        /* PANEL DERECHO */
         .panel-derecho {
             flex: 1;
             display: flex;
@@ -171,10 +170,6 @@
             cursor: pointer;
         }
 
-        .iconos-chat span:hover {
-            color: white;
-        }
-
         .area-mensajes {
             flex: 1;
             padding: 20px;
@@ -190,7 +185,6 @@
             border-radius: 8px;
             font-size: 0.9rem;
             line-height: 1.4;
-            position: relative;
         }
 
         .mensaje.enviado {
@@ -245,9 +239,6 @@
             border: none;
             cursor: pointer;
             font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .btn-enviar:hover {
@@ -272,48 +263,36 @@
             color: #e9edef;
             font-size: 1.5rem;
         }
-
-        .pantalla-bienvenida p {
-            font-size: 0.9rem;
-            text-align: center;
-            max-width: 300px;
-        }
     </style>
 </head>
 
 <body>
-
-    <!-- PANEL IZQUIERDO -->
     <div class="panel-izquierdo">
         <div class="header-izquierdo">
             <div class="avatar" id="mi-avatar">U</div>
             <div class="iconos-header">
                 <span title="Nuevo chat">💬</span>
-                <span title="Menú">⋮</span>
+                <span title="Cerrar sesión" onclick="cerrarSesion()">🚪</span>
             </div>
         </div>
-
         <div class="buscador">
-            <input type="text" placeholder="🔍 Buscar o empezar un chat" />
+            <input type="text" placeholder="🔍 Buscar contacto" id="input-buscar" oninput="buscarContacto()" />
         </div>
-
-        <div class="lista-chats" id="lista-chats">
-            <!-- Los contactos aparecerán aquí -->
-        </div>
+        <div class="lista-chats" id="lista-chats"></div>
     </div>
 
-    <!-- PANEL DERECHO -->
     <div class="panel-derecho" id="panel-derecho">
         <div class="pantalla-bienvenida">
             <div class="icono">💬</div>
             <h2>Messenger App</h2>
-            <p>Selecciona un chat para comenzar a conversar</p>
+            <p style="color:#8696a0">Selecciona un chat para comenzar</p>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js'
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js'
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js'
 
         const firebaseConfig = {
             apiKey: "AIzaSyCATFZ_YqRufmFkHrMyCyH25kK_0vxUjrA",
@@ -326,103 +305,120 @@
 
         const app = initializeApp(firebaseConfig)
         const auth = getAuth(app)
+        const db = getFirestore(app)
 
-        // Verificar si el usuario está logueado
+        let usuarioActual = null
+        let chatActual = null
+        let unsubscribeMensajes = null
+
+        const contactos = [
+            { nombre: "María García", email: "maria@test.com" },
+            { nombre: "Juan Pérez", email: "juan@test.com" },
+            { nombre: "Ana López", email: "ana@test.com" },
+            { nombre: "Carlos Ruiz", email: "carlos@test.com" },
+        ]
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                const inicial = user.email[0].toUpperCase()
-                document.getElementById('mi-avatar').textContent = inicial
-                cargarContactos()
+                usuarioActual = user
+                document.getElementById('mi-avatar').textContent = user.email[0].toUpperCase()
+                cargarContactos(contactos)
             } else {
                 window.location.href = 'index.html'
             }
         })
 
-        // Contactos de ejemplo por ahora
-        function cargarContactos() {
-            const contactos = [
-                { nombre: "María García", ultimo: "Hola, ¿cómo estás?", hora: "10:30" },
-                { nombre: "Juan Pérez", ultimo: "¿Nos vemos mañana?", hora: "09:15" },
-                { nombre: "Ana López", ultimo: "Perfecto, gracias!", hora: "Ayer" },
-                { nombre: "Carlos Ruiz", ultimo: "Ok, te llamo luego", hora: "Ayer" },
-            ]
-
-            const lista = document.getElementById('lista-chats')
-            lista.innerHTML = ''
-
-            contactos.forEach((c, i) => {
+        function cargarContactos(lista) {
+            const contenedor = document.getElementById('lista-chats')
+            contenedor.innerHTML = ''
+            lista.forEach((c, i) => {
                 const item = document.createElement('div')
                 item.className = 'chat-item'
+                item.id = `contacto-${i}`
                 item.innerHTML = `
           <div class="avatar">${c.nombre[0]}</div>
           <div class="chat-info">
             <div class="chat-nombre">${c.nombre}</div>
-            <div class="chat-ultimo">${c.ultimo}</div>
+            <div class="chat-ultimo">Haz clic para chatear</div>
           </div>
-          <div class="chat-hora">${c.hora}</div>
         `
-                item.onclick = () => abrirChat(c.nombre, i)
-                lista.appendChild(item)
+                item.onclick = () => abrirChat(c, i)
+                contenedor.appendChild(item)
             })
         }
 
-        // Mensajes de ejemplo
-        const mensajesEjemplo = [
-            { texto: "Hola, ¿cómo estás?", tipo: "recibido", hora: "10:28" },
-            { texto: "Muy bien gracias! ¿Y tú?", tipo: "enviado", hora: "10:29" },
-            { texto: "También bien, gracias por preguntar 😊", tipo: "recibido", hora: "10:30" },
-        ]
+        window.buscarContacto = function () {
+            const texto = document.getElementById('input-buscar').value.toLowerCase()
+            const filtrados = contactos.filter(c => c.nombre.toLowerCase().includes(texto))
+            cargarContactos(filtrados)
+        }
 
-        window.abrirChat = function (nombre, index) {
+        window.abrirChat = function (contacto, index) {
             document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('activo'))
-            document.querySelectorAll('.chat-item')[index].classList.add('activo')
+            const item = document.getElementById(`contacto-${index}`)
+            if (item) item.classList.add('activo')
+
+            chatActual = [usuarioActual.email, contacto.email].sort().join('_')
+
+            if (unsubscribeMensajes) unsubscribeMensajes()
 
             const panel = document.getElementById('panel-derecho')
             panel.innerHTML = `
         <div class="header-derecho">
-          <div class="avatar">${nombre[0]}</div>
+          <div class="avatar">${contacto.nombre[0]}</div>
           <div>
-            <div class="contacto-nombre">${nombre}</div>
+            <div class="contacto-nombre">${contacto.nombre}</div>
             <div class="contacto-estado">en línea</div>
           </div>
           <div class="iconos-chat">
-            <span title="Llamada">🔍</span>
-            <span title="Menú">⋮</span>
+            <span title="Buscar">🔍</span>
+            <span title="Más opciones">⋮</span>
           </div>
         </div>
-        <div class="area-mensajes" id="area-mensajes">
-        </div>
+        <div class="area-mensajes" id="area-mensajes"></div>
         <div class="input-area">
           <input type="text" id="input-mensaje" placeholder="Escribe un mensaje" onkeypress="enviarConEnter(event)" />
           <button class="btn-enviar" onclick="enviarMensaje()">➤</button>
         </div>
       `
 
-            const area = document.getElementById('area-mensajes')
-            mensajesEjemplo.forEach(m => agregarMensaje(m.texto, m.tipo, m.hora))
+            const q = query(collection(db, `chats/${chatActual}/mensajes`), orderBy('timestamp'))
+            unsubscribeMensajes = onSnapshot(q, (snapshot) => {
+                const area = document.getElementById('area-mensajes')
+                if (!area) return
+                area.innerHTML = ''
+                snapshot.forEach(doc => {
+                    const m = doc.data()
+                    const tipo = m.remitente === usuarioActual.email ? 'enviado' : 'recibido'
+                    const hora = m.timestamp ? new Date(m.timestamp.toDate()).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) : ''
+                    const div = document.createElement('div')
+                    div.className = `mensaje ${tipo}`
+                    div.innerHTML = `${m.texto}<div class="mensaje-hora">${hora}</div>`
+                    area.appendChild(div)
+                })
+                area.scrollTop = area.scrollHeight
+            })
         }
 
-        window.enviarMensaje = function () {
+        window.enviarMensaje = async function () {
             const input = document.getElementById('input-mensaje')
             const texto = input.value.trim()
-            if (!texto) return
-            const hora = new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
-            agregarMensaje(texto, 'enviado', hora)
+            if (!texto || !chatActual) return
             input.value = ''
+            await addDoc(collection(db, `chats/${chatActual}/mensajes`), {
+                texto,
+                remitente: usuarioActual.email,
+                timestamp: serverTimestamp()
+            })
         }
 
         window.enviarConEnter = function (e) {
             if (e.key === 'Enter') enviarMensaje()
         }
 
-        function agregarMensaje(texto, tipo, hora) {
-            const area = document.getElementById('area-mensajes')
-            if (!area) return
-            const div = document.createElement('div')
-            div.className = `mensaje ${tipo}`
-            div.innerHTML = `${texto}<div class="mensaje-hora">${hora}</div>`
-            area.appendChild(div)
-            area.scrollTop = area.scrollHeight
+        window.cerrarSesion = async function () {
+            await signOut(auth)
+            window.location.href = 'index.html'
         }
     </script>
 </body>
