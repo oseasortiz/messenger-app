@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cambiar contraseña</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #111b21;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #202c33;
+            padding: 40px;
+            border-radius: 12px;
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        h1 {
+            color: white;
+            font-size: 1.4rem;
+        }
+
+        p.subtitulo {
+            color: #8696a0;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .campo {
+            width: 100%;
+        }
+
+        .campo label {
+            color: #00a884;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .campo input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: none;
+            background-color: #2a3942;
+            color: white;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .campo input:focus {
+            border: 1px solid #00a884;
+        }
+
+        .campo input::placeholder {
+            color: #8696a0;
+        }
+
+        .divider {
+            width: 100%;
+            height: 1px;
+            background-color: #2a3942;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background-color: #00a884;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #02c99e;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: #00a884;
+            border: 1px solid #00a884;
+        }
+
+        .btn-secondary:hover {
+            background-color: #2a3942;
+        }
+
+        .mensaje {
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 8px;
+            border-radius: 6px;
+            display: none;
+            width: 100%;
+        }
+
+        .error {
+            background-color: #3d1515;
+            color: #ff6b6b;
+        }
+
+        .exito {
+            background-color: #153d2a;
+            color: #00a884;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div style="font-size:50px">🔒</div>
+        <h1>Cambiar contraseña</h1>
+        <p class="subtitulo">Ingresa tu contraseña actual y la nueva</p>
+        <div class="divider"></div>
+
+        <div class="campo">
+            <label>Contraseña actual</label>
+            <input type="password" id="actual" placeholder="Tu contraseña actual" />
+        </div>
+
+        <div class="campo">
+            <label>Nueva contraseña</label>
+            <input type="password" id="nueva" placeholder="Mínimo 6 caracteres" />
+        </div>
+
+        <div class="campo">
+            <label>Confirmar nueva contraseña</label>
+            <input type="password" id="confirmar" placeholder="Repite la nueva contraseña" />
+        </div>
+
+        <div id="mensaje-estado" class="mensaje"></div>
+
+        <button class="btn btn-primary" onclick="cambiarContrasena()">Cambiar contraseña</button>
+        <button class="btn btn-secondary" onclick="window.location.href='configuracion.html'">← Volver</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js'
+        import { getAuth, onAuthStateChanged, reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js'
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCATFZ_YqRufmFkHrMyCyH25kK_0vxUjrA",
+            authDomain: "messenger-app-b232a.firebaseapp.com",
+            projectId: "messenger-app-b232a",
+            storageBucket: "messenger-app-b232a.firebasestorage.app",
+            messagingSenderId: "706161001993",
+            appId: "1:706161001993:web:708e50c80a51c771e71ad8"
+        }
+
+        const app = initializeApp(firebaseConfig)
+        const auth = getAuth(app)
+
+        function mostrarMensaje(texto, tipo) {
+            const el = document.getElementById('mensaje-estado')
+            el.textContent = texto
+            el.className = `mensaje ${tipo}`
+            el.style.display = 'block'
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) window.location.href = 'index.html'
+        })
+
+        window.cambiarContrasena = async function () {
+            const actual = document.getElementById('actual').value
+            const nueva = document.getElementById('nueva').value
+            const confirmar = document.getElementById('confirmar').value
+
+            if (!actual || !nueva || !confirmar) {
+                mostrarMensaje('Por favor completa todos los campos', 'error'); return
+            }
+            if (nueva.length < 6) {
+                mostrarMensaje('La nueva contraseña debe tener al menos 6 caracteres', 'error'); return
+            }
+            if (nueva !== confirmar) {
+                mostrarMensaje('Las contraseñas no coinciden', 'error'); return
+            }
+
+            try {
+                const user = auth.currentUser
+                const credencial = EmailAuthProvider.credential(user.email, actual)
+                await reauthenticateWithCredential(user, credencial)
+                await updatePassword(user, nueva)
+                mostrarMensaje('¡Contraseña actualizada correctamente!', 'exito')
+                setTimeout(() => { window.location.href = 'configuracion.html' }, 1500)
+            } catch (e) {
+                mostrarMensaje('Contraseña actual incorrecta', 'error')
+            }
+        }
+    </script>
+</body>
+
+</html>
