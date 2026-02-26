@@ -81,11 +81,20 @@
             background-color: #02c99e;
         }
 
-        .links {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
+        .btn-registro {
+            width: 100%;
+            padding: 12px;
+            background-color: transparent;
+            color: #00a884;
+            border: 1px solid #00a884;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-registro:hover {
+            background-color: #2a3942;
         }
 
         .links a {
@@ -103,6 +112,27 @@
             height: 1px;
             background-color: #2a3942;
         }
+
+        .mensaje {
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .error {
+            background-color: #3d1515;
+            color: #ff6b6b;
+        }
+
+        .exito {
+            background-color: #153d2a;
+            color: #00a884;
+        }
+
+        #mensaje-estado {
+            display: none;
+        }
     </style>
 </head>
 
@@ -111,31 +141,74 @@
         <div class="logo">💬</div>
         <h1>Messenger App</h1>
         <p class="subtitulo">Inicia sesión para continuar</p>
-
         <div class="divider"></div>
-
         <input type="email" id="correo" placeholder="Correo electrónico" />
         <input type="password" id="contrasena" placeholder="Contraseña" />
-
+        <div id="mensaje-estado" class="mensaje"></div>
         <button class="btn-login" onclick="iniciarSesion()">Iniciar Sesión</button>
-
+        <button class="btn-registro" onclick="registrarse()">Crear cuenta nueva</button>
         <div class="links">
-            <a href="#">¿Olvidaste tu contraseña?</a>
-            <a href="#">¿No tienes cuenta? Regístrate</a>
+            <a href="#" onclick="recuperarContrasena()">¿Olvidaste tu contraseña?</a>
         </div>
     </div>
 
-    <script>
-        function iniciarSesion() {
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js'
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js'
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCATFZ_YqRufmFkHrMyCyH25kK_0vxUjrA",
+            authDomain: "messenger-app-b232a.firebaseapp.com",
+            projectId: "messenger-app-b232a",
+            storageBucket: "messenger-app-b232a.firebasestorage.app",
+            messagingSenderId: "706161001993",
+            appId: "1:706161001993:web:708e50c80a51c771e71ad8"
+        }
+
+        const app = initializeApp(firebaseConfig)
+        const auth = getAuth(app)
+
+        function mostrarMensaje(texto, tipo) {
+            const el = document.getElementById('mensaje-estado')
+            el.textContent = texto
+            el.className = `mensaje ${tipo}`
+            el.style.display = 'block'
+        }
+
+        window.iniciarSesion = async function () {
             const correo = document.getElementById('correo').value
             const contrasena = document.getElementById('contrasena').value
-
-            if (correo === '' || contrasena === '') {
-                alert('Por favor completa todos los campos')
-                return
+            if (!correo || !contrasena) { mostrarMensaje('Por favor completa todos los campos', 'error'); return }
+            try {
+                await signInWithEmailAndPassword(auth, correo, contrasena)
+                mostrarMensaje('¡Bienvenido! Cargando...', 'exito')
+            } catch (e) {
+                mostrarMensaje('Correo o contraseña incorrectos', 'error')
             }
+        }
 
-            alert('¡Bienvenido! Pronto conectaremos esto con Firebase')
+        window.registrarse = async function () {
+            const correo = document.getElementById('correo').value
+            const contrasena = document.getElementById('contrasena').value
+            if (!correo || !contrasena) { mostrarMensaje('Por favor completa todos los campos', 'error'); return }
+            if (contrasena.length < 6) { mostrarMensaje('La contraseña debe tener al menos 6 caracteres', 'error'); return }
+            try {
+                await createUserWithEmailAndPassword(auth, correo, contrasena)
+                mostrarMensaje('¡Cuenta creada exitosamente!', 'exito')
+            } catch (e) {
+                mostrarMensaje('Error al crear cuenta. El correo ya existe.', 'error')
+            }
+        }
+
+        window.recuperarContrasena = async function () {
+            const correo = document.getElementById('correo').value
+            if (!correo) { mostrarMensaje('Escribe tu correo primero', 'error'); return }
+            try {
+                await sendPasswordResetEmail(auth, correo)
+                mostrarMensaje('¡Correo de recuperación enviado!', 'exito')
+            } catch (e) {
+                mostrarMensaje('Error al enviar correo de recuperación', 'error')
+            }
         }
     </script>
 </body>
