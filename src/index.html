@@ -182,6 +182,7 @@
             try {
                 await signInWithEmailAndPassword(auth, correo, contrasena)
                 mostrarMensaje('¡Bienvenido! Cargando...', 'exito')
+                setTimeout(() => { window.location.href = 'chat.html' }, 1000)
             } catch (e) {
                 mostrarMensaje('Correo o contraseña incorrectos', 'error')
             }
