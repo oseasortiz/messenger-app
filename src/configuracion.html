@@ -183,10 +183,28 @@
                 localStorage.setItem('modo', 'claro')
                 document.getElementById('icono-modo').textContent = '☀️'
                 document.getElementById('desc-modo').textContent = 'Actualmente: Modo claro'
+                document.body.style.backgroundColor = '#f0f2f5'
+                document.querySelectorAll('.opcion').forEach(el => {
+                    el.style.backgroundColor = '#ffffff'
+                    el.style.color = '#111b21'
+                })
+                document.querySelectorAll('.opcion-titulo').forEach(el => el.style.color = '#111b21')
+                document.querySelectorAll('.opcion-desc').forEach(el => el.style.color = '#667781')
+                document.querySelector('.container').style.backgroundColor = '#ffffff'
+                document.querySelector('h1').style.color = '#111b21'
             } else {
                 localStorage.setItem('modo', 'oscuro')
                 document.getElementById('icono-modo').textContent = '🌙'
                 document.getElementById('desc-modo').textContent = 'Actualmente: Modo oscuro'
+                document.body.style.backgroundColor = '#111b21'
+                document.querySelectorAll('.opcion').forEach(el => {
+                    el.style.backgroundColor = '#2a3942'
+                    el.style.color = '#e9edef'
+                })
+                document.querySelectorAll('.opcion-titulo').forEach(el => el.style.color = '#e9edef')
+                document.querySelectorAll('.opcion-desc').forEach(el => el.style.color = '#8696a0')
+                document.querySelector('.container').style.backgroundColor = '#202c33'
+                document.querySelector('h1').style.color = '#ffffff'
             }
         }
     </script>
