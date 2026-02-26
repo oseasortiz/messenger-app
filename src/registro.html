@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Messenger App</title>
+    <title>Crear cuenta</title>
     <style>
         * {
             margin: 0;
@@ -20,15 +20,15 @@
             height: 100vh;
         }
 
-        .login-container {
+        .container {
             background-color: #202c33;
             padding: 40px;
             border-radius: 12px;
-            width: 380px;
+            width: 400px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
         }
 
         .logo {
@@ -65,46 +65,33 @@
             color: #8696a0;
         }
 
-        .btn-login {
+        .btn {
             width: 100%;
             padding: 12px;
-            background-color: #00a884;
-            color: white;
-            border: none;
             border-radius: 8px;
+            border: none;
             font-size: 1rem;
             cursor: pointer;
             font-weight: bold;
         }
 
-        .btn-login:hover {
+        .btn-primary {
+            background-color: #00a884;
+            color: white;
+        }
+
+        .btn-primary:hover {
             background-color: #02c99e;
         }
 
-        .btn-registro {
-            width: 100%;
-            padding: 12px;
+        .btn-secondary {
             background-color: transparent;
             color: #00a884;
             border: 1px solid #00a884;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            font-weight: bold;
         }
 
-        .btn-registro:hover {
+        .btn-secondary:hover {
             background-color: #2a3942;
-        }
-
-        .links a {
-            color: #00a884;
-            font-size: 0.85rem;
-            text-decoration: none;
-        }
-
-        .links a:hover {
-            text-decoration: underline;
         }
 
         .divider {
@@ -118,6 +105,8 @@
             text-align: center;
             padding: 8px;
             border-radius: 6px;
+            display: none;
+            width: 100%;
         }
 
         .error {
@@ -129,32 +118,28 @@
             background-color: #153d2a;
             color: #00a884;
         }
-
-        #mensaje-estado {
-            display: none;
-        }
     </style>
 </head>
 
 <body>
-    <div class="login-container">
-        <div class="logo">💬</div>
-        <h1>Messenger App</h1>
-        <p class="subtitulo">Inicia sesión para continuar</p>
+    <div class="container">
+        <div class="logo">👤</div>
+        <h1>Crear cuenta</h1>
+        <p class="subtitulo">Completa tus datos para registrarte</p>
         <div class="divider"></div>
+        <input type="text" id="nombre" placeholder="Nombre completo" />
         <input type="email" id="correo" placeholder="Correo electrónico" />
-        <input type="password" id="contrasena" placeholder="Contraseña" />
+        <input type="password" id="contrasena" placeholder="Contraseña (mín. 6 caracteres)" />
+        <input type="password" id="confirmar" placeholder="Confirmar contraseña" />
         <div id="mensaje-estado" class="mensaje"></div>
-        <button class="btn-login" onclick="iniciarSesion()">Iniciar Sesión</button>
-        <button class="btn-registro" onclick="window.location.href='registro.html'">Crear cuenta nueva</button>
-        <div class="links">
-            <a href="#" onclick="recuperarContrasena()">¿Olvidaste tu contraseña?</a>
-        </div>
+        <button class="btn btn-primary" onclick="registrarse()">Crear cuenta</button>
+        <button class="btn btn-secondary" onclick="window.location.href='index.html'">Ya tengo cuenta</button>
     </div>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js'
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js'
+        import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js'
+        import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js'
 
         const firebaseConfig = {
             apiKey: "AIzaSyCATFZ_YqRufmFkHrMyCyH25kK_0vxUjrA",
@@ -167,6 +152,7 @@
 
         const app = initializeApp(firebaseConfig)
         const auth = getAuth(app)
+        const db = getFirestore(app)
 
         function mostrarMensaje(texto, tipo) {
             const el = document.getElementById('mensaje-estado')
@@ -175,40 +161,36 @@
             el.style.display = 'block'
         }
 
-        window.iniciarSesion = async function () {
-            const correo = document.getElementById('correo').value
-            const contrasena = document.getElementById('contrasena').value
-            if (!correo || !contrasena) { mostrarMensaje('Por favor completa todos los campos', 'error'); return }
-            try {
-                await signInWithEmailAndPassword(auth, correo, contrasena)
-                mostrarMensaje('¡Bienvenido! Cargando...', 'exito')
-                setTimeout(() => { window.location.href = 'chat.html' }, 1000)
-            } catch (e) {
-                mostrarMensaje('Correo o contraseña incorrectos', 'error')
-            }
-        }
-
         window.registrarse = async function () {
-            const correo = document.getElementById('correo').value
+            const nombre = document.getElementById('nombre').value.trim()
+            const correo = document.getElementById('correo').value.trim()
             const contrasena = document.getElementById('contrasena').value
-            if (!correo || !contrasena) { mostrarMensaje('Por favor completa todos los campos', 'error'); return }
-            if (contrasena.length < 6) { mostrarMensaje('La contraseña debe tener al menos 6 caracteres', 'error'); return }
-            try {
-                await createUserWithEmailAndPassword(auth, correo, contrasena)
-                mostrarMensaje('¡Cuenta creada exitosamente!', 'exito')
-            } catch (e) {
-                mostrarMensaje('Error al crear cuenta. El correo ya existe.', 'error')
-            }
-        }
+            const confirmar = document.getElementById('confirmar').value
 
-        window.recuperarContrasena = async function () {
-            const correo = document.getElementById('correo').value
-            if (!correo) { mostrarMensaje('Escribe tu correo primero', 'error'); return }
+            if (!nombre || !correo || !contrasena || !confirmar) {
+                mostrarMensaje('Por favor completa todos los campos', 'error'); return
+            }
+            if (contrasena.length < 6) {
+                mostrarMensaje('La contraseña debe tener al menos 6 caracteres', 'error'); return
+            }
+            if (contrasena !== confirmar) {
+                mostrarMensaje('Las contraseñas no coinciden', 'error'); return
+            }
+
             try {
-                await sendPasswordResetEmail(auth, correo)
-                mostrarMensaje('¡Correo de recuperación enviado!', 'exito')
+                const resultado = await createUserWithEmailAndPassword(auth, correo, contrasena)
+                await updateProfile(resultado.user, { displayName: nombre })
+                await setDoc(doc(db, 'usuarios', resultado.user.uid), {
+                    nombre: nombre,
+                    email: correo,
+                    foto: '',
+                    estado: 'Hola, estoy usando Messenger App',
+                    creado: new Date().toISOString()
+                })
+                mostrarMensaje('¡Cuenta creada exitosamente!', 'exito')
+                setTimeout(() => { window.location.href = 'chat.html' }, 1500)
             } catch (e) {
-                mostrarMensaje('Error al enviar correo de recuperación', 'error')
+                mostrarMensaje('Error: El correo ya está registrado', 'error')
             }
         }
     </script>
