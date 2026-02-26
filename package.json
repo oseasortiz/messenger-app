@@ -1,0 +1,25 @@
+{
+  "name": "messenger-app",
+  "version": "1.0.0",
+  "description": "App de mensajería tipo WhatsApp para escritorio",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oseasortiz/messenger-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/oseasortiz/messenger-app/issues"
+  },
+  "homepage": "https://github.com/oseasortiz/messenger-app#readme",
+  "dependencies": {
+    "electron": "^40.6.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  }
+}
