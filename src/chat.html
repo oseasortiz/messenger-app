@@ -19,8 +19,76 @@
             overflow: hidden;
         }
 
+        /* BARRA LATERAL IZQUIERDA (iconos) */
+        .sidebar {
+            width: 56px;
+            background-color: #1a2530;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 0;
+            gap: 8px;
+            border-right: 1px solid #2a3942;
+        }
+
+        .sidebar-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #00a884;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-avatar:hover {
+            opacity: 0.85;
+        }
+
+        .sidebar-divider {
+            width: 32px;
+            height: 1px;
+            background-color: #2a3942;
+            margin: 4px 0;
+        }
+
+        .sidebar-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: none;
+            background-color: transparent;
+            color: #8696a0;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .sidebar-btn:hover {
+            background-color: #2a3942;
+            color: #e9edef;
+        }
+
+        .sidebar-btn.activo {
+            background-color: #2a3942;
+            color: #00a884;
+        }
+
+        .sidebar-spacer {
+            flex: 1;
+        }
+
+        /* PANEL IZQUIERDO (lista de chats) */
         .panel-izquierdo {
-            width: 380px;
+            width: 340px;
             background-color: #111b21;
             border-right: 1px solid #2a3942;
             display: flex;
@@ -36,6 +104,12 @@
             height: 60px;
         }
 
+        .header-titulo {
+            color: #e9edef;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
         .avatar {
             width: 40px;
             height: 40px;
@@ -48,21 +122,6 @@
             font-weight: bold;
             font-size: 1.1rem;
             cursor: pointer;
-        }
-
-        .iconos-header {
-            display: flex;
-            gap: 20px;
-        }
-
-        .iconos-header span {
-            color: #aebac1;
-            font-size: 1.3rem;
-            cursor: pointer;
-        }
-
-        .iconos-header span:hover {
-            color: white;
         }
 
         .buscador {
@@ -99,18 +158,10 @@
             gap: 12px;
         }
 
-        .chat-item:hover {
-            background-color: #202c33;
-        }
+        .chat-item:hover { background-color: #202c33; }
+        .chat-item.activo { background-color: #2a3942; }
 
-        .chat-item.activo {
-            background-color: #2a3942;
-        }
-
-        .chat-info {
-            flex: 1;
-            overflow: hidden;
-        }
+        .chat-info { flex: 1; overflow: hidden; }
 
         .chat-nombre {
             color: #e9edef;
@@ -126,11 +177,7 @@
             text-overflow: ellipsis;
         }
 
-        .chat-hora {
-            color: #8696a0;
-            font-size: 0.75rem;
-        }
-
+        /* PANEL DERECHO */
         .panel-derecho {
             flex: 1;
             display: flex;
@@ -227,9 +274,7 @@
             font-size: 0.95rem;
         }
 
-        .input-area input::placeholder {
-            color: #8696a0;
-        }
+        .input-area input::placeholder { color: #8696a0; }
 
         .btn-enviar {
             width: 42px;
@@ -241,9 +286,7 @@
             font-size: 1.2rem;
         }
 
-        .btn-enviar:hover {
-            background-color: #02c99e;
-        }
+        .btn-enviar:hover { background-color: #02c99e; }
 
         .pantalla-bienvenida {
             flex: 1;
@@ -255,40 +298,65 @@
             gap: 16px;
         }
 
-        .pantalla-bienvenida .icono {
-            font-size: 80px;
-        }
+        .pantalla-bienvenida .icono { font-size: 80px; }
 
         .pantalla-bienvenida h2 {
             color: #e9edef;
             font-size: 1.5rem;
         }
+
+        /* MODO CLARO */
+        body.modo-claro { background-color: #f0f2f5; }
+        body.modo-claro .sidebar { background-color: #f0f2f5; border-right-color: #d1d7db; }
+        body.modo-claro .sidebar-btn { color: #54656f; }
+        body.modo-claro .sidebar-btn:hover { background-color: #e9edef; color: #111b21; }
+        body.modo-claro .panel-izquierdo { background-color: #ffffff; }
+        body.modo-claro .header-izquierdo { background-color: #f0f2f5; }
+        body.modo-claro .header-titulo { color: #111b21; }
+        body.modo-claro .buscador { background-color: #ffffff; }
+        body.modo-claro .buscador input { background-color: #f0f2f5; color: #111b21; }
+        body.modo-claro .lista-chats { background-color: #ffffff; }
+        body.modo-claro .chat-item { border-bottom-color: #f0f2f5; }
+        body.modo-claro .chat-item:hover { background-color: #f5f6f6; }
+        body.modo-claro .chat-item.activo { background-color: #f0f2f5; }
+        body.modo-claro .chat-nombre { color: #111b21; }
+        body.modo-claro .chat-ultimo { color: #667781; }
+        body.modo-claro .panel-derecho { background-color: #efeae2; }
+        body.modo-claro .header-derecho { background-color: #f0f2f5; }
+        body.modo-claro .contacto-nombre { color: #111b21; }
+        body.modo-claro .contacto-estado { color: #667781; }
+        body.modo-claro .input-area { background-color: #f0f2f5; }
+        body.modo-claro .input-area input { background-color: #ffffff; color: #111b21; }
+        body.modo-claro .pantalla-bienvenida h2 { color: #111b21; }
+        body.modo-claro .sidebar-divider { background-color: #d1d7db; }
     </style>
 </head>
 
 <body>
+    <!-- BARRA LATERAL -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-avatar" id="sidebar-avatar" onclick="window.location.href='perfil.html'" title="Editar perfil">U</div>
+        <div class="sidebar-divider"></div>
+        <button class="sidebar-btn activo" title="Chats" onclick="">💬</button>
+        <button class="sidebar-btn" title="Contactos" onclick="window.location.href='contactos.html'">👥</button>
+        <button class="sidebar-btn" title="Configuración" onclick="window.location.href='configuracion.html'">⚙️</button>
+        <div class="sidebar-spacer"></div>
+        <button class="sidebar-btn" id="btn-modo" onclick="toggleModo()" title="Cambiar modo">🌙</button>
+        <button class="sidebar-btn" title="Cerrar sesión" onclick="cerrarSesion()">🚪</button>
+    </div>
+
+    <!-- PANEL IZQUIERDO -->
     <div class="panel-izquierdo">
         <div class="header-izquierdo">
-            <div class="avatar" id="mi-avatar" onclick="window.location.href='perfil.html'" title="Editar perfil">U
-            </div>
-            <div class="iconos-header">
-                <span title="Nuevo chat">💬</span>
-                <span title="Configuración" onclick="window.location.href='configuracion.html'">⚙️</span>
-                <span title="Cerrar sesión" onclick="cerrarSesion()">🚪</span>
-            </div>
+            <span class="header-titulo">Chats</span>
         </div>
         <div class="buscador">
             <input type="text" placeholder="🔍 Buscar contacto" id="input-buscar" oninput="buscarContacto()" />
         </div>
         <div class="lista-chats" id="lista-chats"></div>
-        <div style="padding: 12px 16px; border-top: 1px solid #2a3942;">
-            <button id="btn-modo" onclick="toggleModo()"
-                style="width:100%; padding:10px; border-radius:8px; border:none; background-color:#2a3942; color:#e9edef; cursor:pointer; font-size:0.9rem;">
-                🌙 Cambiar a modo claro
-            </button>
-        </div>
     </div>
 
+    <!-- PANEL DERECHO -->
     <div class="panel-derecho" id="panel-derecho">
         <div class="pantalla-bienvenida">
             <div class="icono">💬</div>
@@ -326,13 +394,15 @@
             { nombre: "Carlos Ruiz", email: "carlos@test.com" },
         ]
 
+        // Aplicar modo guardado inmediatamente
+        const modoGuardado = localStorage.getItem('modo') || 'oscuro'
+        aplicarModo(modoGuardado)
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 usuarioActual = user
-                document.getElementById('mi-avatar').textContent = user.email[0].toUpperCase()
+                document.getElementById('sidebar-avatar').textContent = user.email[0].toUpperCase()
                 cargarContactos(contactos)
-                const modoGuardado = localStorage.getItem('modo') || 'oscuro'
-                aplicarModo(modoGuardado)
             } else {
                 window.location.href = 'index.html'
             }
@@ -346,21 +416,15 @@
                 item.className = 'chat-item'
                 item.id = `contacto-${i}`
                 item.innerHTML = `
-                <div class="avatar">${c.nombre[0]}</div>
-                <div class="chat-info">
-                    <div class="chat-nombre">${c.nombre}</div>
-                    <div class="chat-ultimo">Haz clic para chatear</div>
-                </div>
-            `
+                    <div class="avatar">${c.nombre[0]}</div>
+                    <div class="chat-info">
+                        <div class="chat-nombre">${c.nombre}</div>
+                        <div class="chat-ultimo">Haz clic para chatear</div>
+                    </div>
+                `
                 item.onclick = () => abrirChat(c, i)
                 contenedor.appendChild(item)
             })
-            const modoGuardado = localStorage.getItem('modo') || 'oscuro'
-            if (modoGuardado === 'claro') {
-                document.querySelectorAll('.chat-nombre').forEach(el => el.style.color = '#111b21')
-                document.querySelectorAll('.chat-ultimo').forEach(el => el.style.color = '#667781')
-                document.querySelectorAll('.chat-item').forEach(el => el.style.backgroundColor = '#f0f2f5')
-            }
         }
 
         window.buscarContacto = function () {
@@ -379,23 +443,23 @@
 
             const panel = document.getElementById('panel-derecho')
             panel.innerHTML = `
-            <div class="header-derecho">
-                <div class="avatar">${contacto.nombre[0]}</div>
-                <div>
-                    <div class="contacto-nombre">${contacto.nombre}</div>
-                    <div class="contacto-estado">en línea</div>
+                <div class="header-derecho">
+                    <div class="avatar">${contacto.nombre[0]}</div>
+                    <div>
+                        <div class="contacto-nombre">${contacto.nombre}</div>
+                        <div class="contacto-estado">en línea</div>
+                    </div>
+                    <div class="iconos-chat">
+                        <span title="Buscar">🔍</span>
+                        <span title="Configuración" onclick="window.location.href='configuracion.html'">⋮</span>
+                    </div>
                 </div>
-                <div class="iconos-chat">
-                    <span title="Buscar">🔍</span>
-                    <span title="Configuración" onclick="window.location.href='configuracion.html'">⋮</span>
+                <div class="area-mensajes" id="area-mensajes"></div>
+                <div class="input-area">
+                    <input type="text" id="input-mensaje" placeholder="Escribe un mensaje" onkeypress="enviarConEnter(event)" />
+                    <button class="btn-enviar" onclick="enviarMensaje()">➤</button>
                 </div>
-            </div>
-            <div class="area-mensajes" id="area-mensajes"></div>
-            <div class="input-area">
-                <input type="text" id="input-mensaje" placeholder="Escribe un mensaje" onkeypress="enviarConEnter(event)" />
-                <button class="btn-enviar" onclick="enviarMensaje()">➤</button>
-            </div>
-        `
+            `
 
             const q = query(collection(db, `chats/${chatActual}/mensajes`), orderBy('timestamp'))
             unsubscribeMensajes = onSnapshot(q, (snapshot) => {
@@ -441,31 +505,18 @@
             const nuevoModo = modo === 'oscuro' ? 'claro' : 'oscuro'
             localStorage.setItem('modo', nuevoModo)
             aplicarModo(nuevoModo)
-            cargarContactos(contactos)
         }
 
         function aplicarModo(modo) {
             const btn = document.getElementById('btn-modo')
             if (modo === 'claro') {
-                document.body.style.backgroundColor = '#f0f2f5'
-                document.querySelectorAll('.panel-izquierdo').forEach(el => el.style.backgroundColor = '#f0f2f5')
-                document.querySelectorAll('.header-izquierdo').forEach(el => el.style.backgroundColor = '#ffffff')
-                document.querySelectorAll('.panel-derecho').forEach(el => el.style.backgroundColor = '#efeae2')
-                document.querySelectorAll('.buscador').forEach(el => el.style.backgroundColor = '#f0f2f5')
-                document.querySelectorAll('.pantalla-bienvenida h2').forEach(el => el.style.color = '#111b21')
-                document.querySelectorAll('.buscador input').forEach(el => { el.style.backgroundColor = '#ffffff'; el.style.color = '#111b21' })
-                document.querySelector('.lista-chats').style.backgroundColor = '#f0f2f5'
-                if (btn) { btn.textContent = '☀️ Cambiar a modo oscuro'; btn.style.backgroundColor = '#ffffff'; btn.style.color = '#111b21' }
+                document.body.classList.add('modo-claro')
+                if (btn) btn.textContent = '☀️'
+                if (btn) btn.title = 'Cambiar a modo oscuro'
             } else {
-                document.body.style.backgroundColor = '#111b21'
-                document.querySelectorAll('.panel-izquierdo').forEach(el => el.style.backgroundColor = '#111b21')
-                document.querySelectorAll('.header-izquierdo').forEach(el => el.style.backgroundColor = '#202c33')
-                document.querySelectorAll('.panel-derecho').forEach(el => el.style.backgroundColor = '#0b141a')
-                document.querySelectorAll('.buscador').forEach(el => el.style.backgroundColor = '#111b21')
-                document.querySelectorAll('.pantalla-bienvenida h2').forEach(el => el.style.color = '#e9edef')
-                document.querySelectorAll('.buscador input').forEach(el => { el.style.backgroundColor = '#202c33'; el.style.color = '#ffffff' })
-                document.querySelector('.lista-chats').style.backgroundColor = '#111b21'
-                if (btn) { btn.textContent = '🌙 Cambiar a modo claro'; btn.style.backgroundColor = '#2a3942'; btn.style.color = '#e9edef' }
+                document.body.classList.remove('modo-claro')
+                if (btn) btn.textContent = '🌙'
+                if (btn) btn.title = 'Cambiar a modo claro'
             }
         }
     </script>
