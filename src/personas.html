@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Personas</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { background-color: #111b21; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 30px 20px; }
+    .container { background-color: #202c33; padding: 30px; border-radius: 12px; width: 480px; display: flex; flex-direction: column; gap: 16px; }
+    h1 { color: white; font-size: 1.4rem; text-align: center; }
+    .tabs { display: flex; gap: 8px; }
+    .tab { flex: 1; padding: 10px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.9rem; font-weight: bold; transition: background 0.2s; }
+    .tab.activo { background-color: #00a884; color: white; }
+    .tab.inactivo { background-color: #2a3942; color: #8696a0; }
+    .seccion { display: flex; flex-direction: column; gap: 10px; }
+    .usuario-item { display: flex; align-items: center; padding: 12px; background-color: #2a3942; border-radius: 10px; gap: 12px; }
+    .avatar { width: 44px; height: 44px; border-radius: 50%; background-color: #00a884; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.1rem; }
+    .usuario-info { flex: 1; }
+    .usuario-nombre { color: #e9edef; font-size: 0.95rem; font-weight: bold; }
+    .usuario-estado { color: #8696a0; font-size: 0.8rem; margin-top: 2px; }
+    .btn { padding: 7px 14px; border-radius: 7px; border: none; cursor: pointer; font-size: 0.82rem; font-weight: bold; }
+    .btn-enviar { background-color: #00a884; color: white; }
+    .btn-enviar:hover { background-color: #02c99e; }
+    .btn-aceptar { background-color: #00a884; color: white; }
+    .btn-rechazar { background-color: #3d1515; color: #ff6b6b; margin-left: 6px; }
+    .btn-pendiente { background-color: #2a3942; color: #8696a0; cursor: default; }
+    .btn-amigos { background-color: #153d2a; color: #00a884; cursor: default; }
+    .vacio { color: #8696a0; font-size: 0.85rem; text-align: center; padding: 20px; }
+    .mensaje { font-size: 0.85rem; text-align: center; padding: 8px; border-radius: 6px; display: none; }
+    .exito { background-color: #153d2a; color: #00a884; }
+    .error { background-color: #3d1515; color: #ff6b6b; }
+    .btn-volver { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #00a884; background-color: transparent; color: #00a884; font-size: 1rem; cursor: pointer; font-weight: bold; }
+    .btn-volver:hover { background-color: #2a3942; }
+    .btn-mensaje { background-color: #00a884; color: white; margin-right: 6px; }
+.btn-mensaje:hover { background-color: #02c99e; }
+    .buscador input { width: 100%; padding: 10px 14px; border-radius: 8px; border: none; background-color: #2a3942; color: white; font-size: 0.9rem; outline: none; }
+    .buscador input::placeholder { color: #8696a0; }
+    .badge { background-color: #ff6b6b; color: white; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; margin-left: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>👥 Personas</h1>
+
+    <div class="tabs">
+      <button class="tab activo" id="tab-personas" onclick="mostrarTab('personas')">🌎 Personas</button>
+      <button class="tab inactivo" id="tab-solicitudes" onclick="mostrarTab('solicitudes')">🔔 Solicitudes <span id="badge-solicitudes" class="badge" style="display:none">0</span></button>
+      <button class="tab inactivo" id="tab-amigos" onclick="mostrarTab('amigos')">✅ Contactos</button>
+    </div>
+
+    <div class="buscador" id="buscador-section">
+      <input type="text" id="input-buscar" placeholder="🔍 Buscar personas..." oninput="filtrarPersonas()" />
+    </div>
+
+    <div id="mensaje-estado" class="mensaje"></div>
+    <div class="seccion" id="contenido-principal"></div>
+
+    <button class="btn-volver" onclick="window.location.href='chat.html'">← Volver al chat</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js'
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js'
+    import { getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove, query, where } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js'
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCATFZ_YqRufmFkHrMyCyH25kK_0vxUjrA",
+      authDomain: "messenger-app-b232a.firebaseapp.com",
+      projectId: "messenger-app-b232a",
+      storageBucket: "messenger-app-b232a.firebasestorage.app",
+      messagingSenderId: "706161001993",
+      appId: "1:706161001993:web:708e50c80a51c771e71ad8"
+    }
+
+    const app = initializeApp(firebaseConfig)
+    const auth = getAuth(app)
+    const db = getFirestore(app)
+
+    let usuarioActual = null
+    let todasPersonas = []
+    let tabActual = 'personas'
+
+    function mostrarMensaje(texto, tipo) {
+      const el = document.getElementById('mensaje-estado')
+      el.textContent = texto
+      el.className = `mensaje ${tipo}`
+      el.style.display = 'block'
+      setTimeout(() => el.style.display = 'none', 3000)
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = 'index.html'; return }
+      usuarioActual = user
+      await cargarPersonas()
+      await contarSolicitudes()
+    })
+
+    async function cargarPersonas() {
+      const snap = await getDocs(collection(db, 'usuarios'))
+      todasPersonas = []
+      snap.forEach(d => {
+        if (d.data().email !== usuarioActual.email) {
+          todasPersonas.push({ uid: d.id, ...d.data() })
+        }
+      })
+      mostrarTab('personas')
+    }
+
+    async function contarSolicitudes() {
+      const ref = doc(db, 'solicitudes', usuarioActual.uid)
+      const snap = await getDoc(ref)
+      if (snap.exists() && snap.data().recibidas) {
+        const pendientes = snap.data().recibidas.filter(s => s.estado === 'pendiente')
+        const badge = document.getElementById('badge-solicitudes')
+        if (pendientes.length > 0) {
+          badge.textContent = pendientes.length
+          badge.style.display = 'inline-flex'
+        } else {
+          badge.style.display = 'none'
+        }
+      }
+    }
+
+    window.mostrarTab = async function(tab) {
+      tabActual = tab
+      document.getElementById('tab-personas').className = tab === 'personas' ? 'tab activo' : 'tab inactivo'
+      document.getElementById('tab-solicitudes').className = tab === 'solicitudes' ? 'tab activo' : 'tab inactivo'
+      document.getElementById('tab-amigos').className = tab === 'amigos' ? 'tab activo' : 'tab inactivo'
+      document.getElementById('buscador-section').style.display = tab === 'personas' ? 'block' : 'none'
+
+      if (tab === 'personas') mostrarPersonas(todasPersonas)
+      else if (tab === 'solicitudes') mostrarSolicitudes()
+      else if (tab === 'amigos') mostrarAmigos()
+    }
+
+    window.filtrarPersonas = function() {
+      const texto = document.getElementById('input-buscar').value.toLowerCase()
+      const filtradas = todasPersonas.filter(p =>
+        (p.nombre || '').toLowerCase().includes(texto) || p.email.toLowerCase().includes(texto)
+      )
+      mostrarPersonas(filtradas)
+    }
+
+    async function mostrarPersonas(lista) {
+      const contenedor = document.getElementById('contenido-principal')
+      if (lista.length === 0) {
+        contenedor.innerHTML = '<div class="vacio">No hay personas registradas aún</div>'
+        return
+      }
+
+      const refSolicitudes = doc(db, 'solicitudes', usuarioActual.uid)
+      const snapSol = await getDoc(refSolicitudes)
+      const enviadas = snapSol.exists() ? (snapSol.data().enviadas || []) : []
+
+      const refAmigos = doc(db, 'contactos', usuarioActual.uid)
+      const snapAmigos = await getDoc(refAmigos)
+      const amigos = snapAmigos.exists() ? (snapAmigos.data().lista || []) : []
+
+      contenedor.innerHTML = ''
+      lista.forEach(p => {
+        const yaEnviada = enviadas.find(s => s.para === p.email)
+        const yaAmigo = amigos.find(a => a.email === p.email)
+        let boton = ''
+        if (yaAmigo) {
+          boton = `<button class="btn btn-amigos">✓ Contacto</button>`
+        } else if (yaEnviada && yaEnviada.estado === 'pendiente') {
+          boton = `<button class="btn btn-pendiente">⏳ Pendiente</button>`
+        } else {
+          boton = `<button class="btn btn-enviar" onclick="enviarSolicitud('${p.uid}', '${p.email}', '${p.nombre || p.email}')">+ Agregar</button>`
+        }
+
+        const div = document.createElement('div')
+        div.className = 'usuario-item'
+        div.innerHTML = `
+          <div class="avatar">${(p.nombre || p.email)[0].toUpperCase()}</div>
+          <div class="usuario-info">
+            <div class="usuario-nombre">${p.nombre || 'Sin nombre'}</div>
+            <div class="usuario-estado">${p.estado || p.email}</div>
+          </div>
+          ${boton}
+        `
+        contenedor.appendChild(div)
+      })
+    }
+
+    async function mostrarSolicitudes() {
+      const contenedor = document.getElementById('contenido-principal')
+      contenedor.innerHTML = '<div class="vacio">Cargando...</div>'
+
+      const ref = doc(db, 'solicitudes', usuarioActual.uid)
+      const snap = await getDoc(ref)
+
+      if (!snap.exists() || !snap.data().recibidas || snap.data().recibidas.length === 0) {
+        contenedor.innerHTML = '<div class="vacio">No tienes solicitudes pendientes</div>'
+        return
+      }
+
+      const pendientes = snap.data().recibidas.filter(s => s.estado === 'pendiente')
+      if (pendientes.length === 0) {
+        contenedor.innerHTML = '<div class="vacio">No tienes solicitudes pendientes</div>'
+        return
+      }
+
+      contenedor.innerHTML = ''
+      pendientes.forEach(s => {
+        const div = document.createElement('div')
+        div.className = 'usuario-item'
+        div.innerHTML = `
+          <div class="avatar">${s.nombre[0].toUpperCase()}</div>
+          <div class="usuario-info">
+            <div class="usuario-nombre">${s.nombre}</div>
+            <div class="usuario-estado">${s.email}</div>
+          </div>
+          <button class="btn btn-aceptar" onclick="aceptarSolicitud('${s.uid}', '${s.email}', '${s.nombre}')">✓ Aceptar</button>
+          <button class="btn btn-rechazar" onclick="rechazarSolicitud('${s.uid}', '${s.email}')">✗</button>
+        `
+        contenedor.appendChild(div)
+      })
+    }
+
+    async function mostrarAmigos() {
+      const contenedor = document.getElementById('contenido-principal')
+      const ref = doc(db, 'contactos', usuarioActual.uid)
+      const snap = await getDoc(ref)
+
+      if (!snap.exists() || !snap.data().lista || snap.data().lista.length === 0) {
+        contenedor.innerHTML = '<div class="vacio">Aún no tienes contactos. ¡Agrega personas!</div>'
+        return
+      }
+
+      contenedor.innerHTML = ''
+      snap.data().lista.forEach(c => {
+        const div = document.createElement('div')
+        div.className = 'usuario-item'
+        div.innerHTML = `
+          <div class="avatar">${c.nombre[0].toUpperCase()}</div>
+          <div class="usuario-info">
+            <div class="usuario-nombre">${c.nombre}</div>
+            <div class="usuario-estado">${c.email}</div>
+          </div>
+          <button class="btn btn-mensaje" onclick="irAlChat('${c.email}', '${c.nombre}')">💬</button>
+<button class="btn btn-rechazar" onclick="eliminarContacto('${c.email}')">✕</button>
+        `
+        contenedor.appendChild(div)
+      })
+    }
+
+    window.enviarSolicitud = async function(uid, email, nombre) {
+      try {
+        const miNombre = usuarioActual.displayName || usuarioActual.email
+        // Guardar en MIS enviadas
+        const miRef = doc(db, 'solicitudes', usuarioActual.uid)
+        await setDoc(miRef, {
+          enviadas: arrayUnion({ para: email, nombre, uid, estado: 'pendiente' })
+        }, { merge: true })
+
+        // Guardar en las RECIBIDAS del otro usuario
+        const otroRef = doc(db, 'solicitudes', uid)
+        await setDoc(otroRef, {
+          recibidas: arrayUnion({
+            de: usuarioActual.email,
+            uid: usuarioActual.uid,
+            nombre: miNombre,
+            email: usuarioActual.email,
+            estado: 'pendiente'
+          })
+        }, { merge: true })
+
+        mostrarMensaje(`¡Solicitud enviada a ${nombre}!`, 'exito')
+        await cargarPersonas()
+      } catch(e) {
+        mostrarMensaje('Error al enviar solicitud', 'error')
+      }
+    }
+
+    window.aceptarSolicitud = async function(uid, email, nombre) {
+      try {
+        // Agregar a mis contactos
+        const miContactosRef = doc(db, 'contactos', usuarioActual.uid)
+        await setDoc(miContactosRef, {
+          lista: arrayUnion({ email, nombre, uid })
+        }, { merge: true })
+
+        // Agregar a los contactos del otro
+        const otroContactosRef = doc(db, 'contactos', uid)
+        const miNombre = usuarioActual.displayName || usuarioActual.email
+        await setDoc(otroContactosRef, {
+          lista: arrayUnion({ email: usuarioActual.email, nombre: miNombre, uid: usuarioActual.uid })
+        }, { merge: true })
+
+        // Marcar solicitud como aceptada
+        const miRef = doc(db, 'solicitudes', usuarioActual.uid)
+        const snap = await getDoc(miRef)
+        if (snap.exists()) {
+          const recibidas = snap.data().recibidas || []
+          const actualizadas = recibidas.map(s => s.email === email ? { ...s, estado: 'aceptada' } : s)
+          await updateDoc(miRef, { recibidas: actualizadas })
+        }
+
+        mostrarMensaje(`¡Ahora eres amigo de ${nombre}!`, 'exito')
+        await contarSolicitudes()
+        mostrarTab('solicitudes')
+      } catch(e) {
+        mostrarMensaje('Error al aceptar solicitud', 'error')
+      }
+    }
+
+    window.rechazarSolicitud = async function(uid, email) {
+      try {
+        const miRef = doc(db, 'solicitudes', usuarioActual.uid)
+        const snap = await getDoc(miRef)
+        if (snap.exists()) {
+          const recibidas = snap.data().recibidas || []
+          const actualizadas = recibidas.filter(s => s.email !== email)
+          await updateDoc(miRef, { recibidas: actualizadas })
+        }
+        mostrarMensaje('Solicitud rechazada', 'exito')
+        await contarSolicitudes()
+        mostrarTab('solicitudes')
+      } catch(e) {
+        mostrarMensaje('Error al rechazar solicitud', 'error')
+      }
+    }
+
+    window.eliminarContacto = async function(email) {
+      try {
+        const ref = doc(db, 'contactos', usuarioActual.uid)
+        const snap = await getDoc(ref)
+        if (snap.exists()) {
+          const contacto = snap.data().lista.find(c => c.email === email)
+          if (contacto) {
+            await updateDoc(ref, { lista: arrayRemove(contacto) })
+            mostrarMensaje('Contacto eliminado', 'exito')
+            mostrarTab('amigos')
+          }
+        }
+      } catch(e) {
+        mostrarMensaje('Error al eliminar contacto', 'error')
+      }
+    }
+    window.irAlChat = function(email, nombre) {
+    localStorage.setItem('chatContacto', JSON.stringify({ email, nombre }))
+    window.location.href = 'chat.html'
+}
+  </script>
+</body>
+</html>

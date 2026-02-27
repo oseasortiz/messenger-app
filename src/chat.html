@@ -338,8 +338,7 @@
         <div class="sidebar-avatar" id="sidebar-avatar" onclick="window.location.href='perfil.html'" title="Editar perfil">U</div>
         <div class="sidebar-divider"></div>
         <button class="sidebar-btn activo" title="Chats" onclick="">💬</button>
-        <button class="sidebar-btn" title="Contactos" onclick="window.location.href='contactos.html'">👥</button>
-        <button class="sidebar-btn" title="Configuración" onclick="window.location.href='configuracion.html'">⚙️</button>
+<button class="sidebar-btn" title="Personas" onclick="window.location.href='personas.html'">👥</button>        <button class="sidebar-btn" title="Configuración" onclick="window.location.href='configuracion.html'">⚙️</button>
         <div class="sidebar-spacer"></div>
         <button class="sidebar-btn" id="btn-modo" onclick="toggleModo()" title="Cambiar modo">🌙</button>
         <button class="sidebar-btn" title="Cerrar sesión" onclick="cerrarSesion()">🚪</button>
@@ -368,8 +367,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js'
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js'
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js'
-
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js'
         const firebaseConfig = {
             apiKey: "AIzaSyCATFZ_YqRufmFkHrMyCyH25kK_0vxUjrA",
             authDomain: "messenger-app-b232a.firebaseapp.com",
@@ -387,27 +385,37 @@
         let chatActual = null
         let unsubscribeMensajes = null
 
-        const contactos = [
-            { nombre: "María García", email: "maria@test.com" },
-            { nombre: "Juan Pérez", email: "juan@test.com" },
-            { nombre: "Ana López", email: "ana@test.com" },
-            { nombre: "Carlos Ruiz", email: "carlos@test.com" },
-        ]
+        const contactos = []
 
         // Aplicar modo guardado inmediatamente
         const modoGuardado = localStorage.getItem('modo') || 'oscuro'
         aplicarModo(modoGuardado)
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                usuarioActual = user
-                document.getElementById('sidebar-avatar').textContent = user.email[0].toUpperCase()
-                cargarContactos(contactos)
-            } else {
-                window.location.href = 'index.html'
-            }
-        })
+        onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        usuarioActual = user
+        document.getElementById('sidebar-avatar').textContent = user.email[0].toUpperCase()
+        await cargarContactosReales()
+        const contactoGuardado = localStorage.getItem('chatContacto')
+if (contactoGuardado) {
+    localStorage.removeItem('chatContacto')
+    const c = JSON.parse(contactoGuardado)
+    setTimeout(() => abrirChat(c, -1), 500)
+}
+    } else {
+        window.location.href = 'index.html'
+    }
+})
 
+async function cargarContactosReales() {
+    const ref = doc(db, 'contactos', usuarioActual.uid)
+    const snap = await getDoc(ref)
+    if (snap.exists() && snap.data().lista && snap.data().lista.length > 0) {
+        cargarContactos(snap.data().lista)
+    } else {
+        cargarContactos([])
+    }
+}
         function cargarContactos(lista) {
             const contenedor = document.getElementById('lista-chats')
             contenedor.innerHTML = ''
